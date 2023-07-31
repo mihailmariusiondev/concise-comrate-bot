@@ -11,9 +11,10 @@ const openai = new OpenAIApi(configuration);
 
 const bot = new Telegraf(BOT_TOKEN);
 
-const recentMessages: { [chatId: number]: string[] } = {};
+type MessageData = { sender: string; text: string };
+const recentMessages: { [chatId: number]: MessageData[] } = {};
 const lastCommandUsage: { [chatId: number]: number } = {};
-const COMMAND_COOLDOWN = 60 * 1000; // 30 seconds in milliseconds
+const COMMAND_COOLDOWN = 60 * 1000; // 60 seconds in milliseconds
 
 bot.start((ctx) => ctx.reply("Qué pasa crack! Soy tu fiel compi que resume conversaciones de telegram"));
 
@@ -37,28 +38,29 @@ bot.command("summarize", async (ctx: Context) => {
 bot.on("text", (ctx: Context) => {
   const chatId = ctx.chat?.id;
   const messageText = (ctx.message as { text: string }).text;
+  const senderName = ctx.from?.first_name || "Unknown";
 
   if (chatId && messageText) {
-    recentMessages[chatId] = [...(recentMessages[chatId] || []), messageText].slice(-100);
+    const messageData: MessageData = { sender: senderName, text: messageText };
+    recentMessages[chatId] = [...(recentMessages[chatId] || []), messageData].slice(-100);
   }
 });
 
 async function getSummaryForChat(ctx: Context, count: number): Promise<string> {
   let messages: string[] = [];
   if (ctx.chat && typeof ctx.chat.id === "number") {
-    messages = recentMessages[ctx.chat.id]?.slice(-count) || [];
+    const messageDataList = recentMessages[ctx.chat.id]?.slice(-count) || [];
+    messages = messageDataList.map((data) => `${data.sender}: ${data.text}`);
   }
 
   const systemMessage: ChatCompletionRequestMessage = {
     role: "system" as ChatCompletionRequestMessageRoleEnum,
     content: `
-    You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages.
-    You will receive a recent conversation that happened in the group. Respond immediately with a short and concise summary of the conversation.
-    The summary should have the following characteristics:
-    - Should be automatically translated to the language of the chat group
-    - Should have a tone that is similar to the conversation, act like you are part of the group
-    - Use 5 sentences or less
-    - Don't be too general, mention who said what
+    You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages. The conversation provided to you is in a specific language, and you should adapt to it, ensuring your summary is in the same language.
+    Respond with a short and concise summary of the conversation while following these guidelines:
+    - Adapt to and match the tone of the conversation, acting like you are part of the group.
+    - Use 3 sentences or less for your summary.
+    - Be specific: mention who said what without being too general.
     `,
   };
 
@@ -66,6 +68,12 @@ async function getSummaryForChat(ctx: Context, count: number): Promise<string> {
     role: "user" as ChatCompletionRequestMessageRoleEnum,
     content: messages.join("\n"),
   };
+
+  // Log the entire payload being sent to OpenAI
+  console.log("Payload being sent to OpenAI:", {
+    model: "gpt-3.5-turbo",
+    messages: [systemMessage, userMessage],
+  });
 
   try {
     const completion = await openai.createChatCompletion({
