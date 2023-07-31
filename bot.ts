@@ -11,62 +11,55 @@ const openai = new OpenAIApi(configuration);
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// A simple in-memory storage for the recent messages.
-// For a production environment, consider using a more persistent storage solution.
 const recentMessages: { [chatId: number]: string[] } = {};
+const lastCommandUsage: { [chatId: number]: number } = {};
+const COMMAND_COOLDOWN = 60 * 1000; // 30 seconds in milliseconds
 
-bot.start((ctx) => ctx.reply("Welcome to the Summary Bot!"));
+bot.start((ctx) => ctx.reply("Qué pasa crack! Soy tu fiel compi que resume conversaciones de telegram"));
 
 bot.command("summarize", async (ctx: Context) => {
-  const messages = await fetchRecentMessages(ctx, 50);
-  const summary = await getSummary(messages);
-  console.log({ summary });
-  ctx.reply(summary);
-});
+  const chatId = ctx.chat?.id;
 
-bot.command("summarize_100", async (ctx: Context) => {
-  const messages = await fetchRecentMessages(ctx, 100);
-  const summary = await getSummary(messages);
-  ctx.reply(summary);
+  if (chatId) {
+    const lastUsed = lastCommandUsage[chatId] || 0;
+    const currentTime = Date.now();
+
+    if (currentTime - lastUsed < COMMAND_COOLDOWN) {
+      ctx.reply("Machooo espérate un poco antes de volver a usar el comando");
+      return;
+    }
+
+    ctx.reply(await getSummaryForChat(ctx, 100));
+    lastCommandUsage[chatId] = currentTime;
+  }
 });
 
 bot.on("text", (ctx: Context) => {
   const chatId = ctx.chat?.id;
+  const messageText = (ctx.message as { text: string }).text;
 
-  // Check if it's a text message
-  if (ctx.message && isTextMessage(ctx.message)) {
-    const messageText = ctx.message.text;
-    if (chatId && messageText) {
-      // Initialize the chat in the recentMessages object if it's not already present
-      if (!recentMessages[chatId]) {
-        recentMessages[chatId] = [];
-      }
-
-      // Add the message to the recent messages for the chat
-      recentMessages[chatId].push(messageText);
-
-      // Keep only the last 100 messages for simplicity
-      if (recentMessages[chatId].length > 100) {
-        recentMessages[chatId].shift();
-      }
-    }
+  if (chatId && messageText) {
+    recentMessages[chatId] = [...(recentMessages[chatId] || []), messageText].slice(-100);
   }
 });
 
-async function fetchRecentMessages(ctx: Context, count: number): Promise<string[]> {
-  const chatId = ctx.chat?.id;
-  if (!chatId || !recentMessages[chatId]) {
-    return [];
+async function getSummaryForChat(ctx: Context, count: number): Promise<string> {
+  let messages: string[] = [];
+  if (ctx.chat && typeof ctx.chat.id === "number") {
+    messages = recentMessages[ctx.chat.id]?.slice(-count) || [];
   }
 
-  return recentMessages[chatId].slice(-count);
-}
-
-async function getSummary(messages: string[]): Promise<string> {
   const systemMessage: ChatCompletionRequestMessage = {
     role: "system" as ChatCompletionRequestMessageRoleEnum,
-    content:
-      "You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages.",
+    content: `
+    You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages.
+    You will receive a recent conversation that happened in the group. Respond immediately with a short and concise summary of the conversation.
+    The summary should have the following characteristics:
+    - Should be automatically translated to the language of the chat group
+    - Should have a tone that is similar to the conversation, act like you are part of the group
+    - Use 5 sentences or less
+    - Don't be too general, mention who said what
+    `,
   };
 
   const userMessage: ChatCompletionRequestMessage = {
@@ -80,17 +73,13 @@ async function getSummary(messages: string[]): Promise<string> {
       messages: [systemMessage, userMessage],
     });
 
-    return completion.data?.choices[0]?.message?.content?.trim() || "Error summarizing the messages.";
+    return completion.data?.choices[0]?.message?.content?.trim() || "Ya la hemos liao... Error al resumir los mensajes";
   } catch (error) {
-    console.error("Error summarizing the messages:", error);
-    return "Error summarizing the messages.";
+    console.error("Ya la hemos liao... Error al resumir los mensajes", error);
+    return "Ya la hemos liao... Error al resumir los mensajes";
   }
-}
-
-function isTextMessage(message: any): message is { text: string } {
-  return message && "text" in message;
 }
 
 bot.launch();
 
-console.log("Bot is running...");
+console.log("Bot está corriendo...");
