@@ -20,7 +20,6 @@ const NOT_ENOUGH_MESSAGES_REPLY = "No hay suficientes mensajes para resumir. Nec
 const COOLDOWN_MESSAGE = "Machooo, espérate un poco antes de volver a usar el comando";
 const ERROR_SUMMARIZING = "Ya la hemos liao... Error al resumir los mensajes";
 
-
 if (!BOT_TOKEN || !GPT_API_KEY) {
   console.error("Environment variables BOT_TOKEN or GPT_API_KEY are not set.");
   process.exit(1);
