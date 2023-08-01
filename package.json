@@ -1,11 +1,13 @@
 {
   "name": "concise-comrate-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "El mejor bot de Telegram para resumir chats inútiles. Creador: @Arkantos2374 (telegram). Donaciones: paypal.me/mariusmihailion",
   "main": "bot.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx tsc bot.ts & node bot.js"
+  },
+  "engines": {
+    "node": "20.5.0"
   },
   "keywords": [],
   "author": "",
