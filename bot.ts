@@ -9,7 +9,7 @@ const MAX_CHAT_MESSAGES = 300;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const GPT_API_KEY = process.env.GPT_API_KEY;
 
-// Reply messages
+// Constants reply messages
 const START_MESSAGE = "¡Qué pasa crack! Vamos a resumir tu mierda de chats de Telegram";
 const BOT_ALREADY_ENABLED_MESSAGE = "El bot ya está activado.";
 const BOT_ENABLED_MESSAGE = "¡Bot activado!";
