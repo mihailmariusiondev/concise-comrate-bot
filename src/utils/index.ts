@@ -56,5 +56,5 @@ export async function getSummaryForChat(chatId: number): Promise<string> {
 
 export function detectLanguage(text: string): string {
   const result = languageDetector.detect(text, 1);
-  return result[0][0] || "unknown";
+  return result[0]?.[0] || "english";
 }

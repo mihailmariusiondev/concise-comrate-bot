@@ -10,28 +10,31 @@ export function textHandler(bot: Telegraf) {
       return;
     }
 
+    const messageId = ctx.message?.message_id;
     const messageText = (ctx.message as { text: string }).text;
-    const senderName = ctx.from?.first_name || "Unknown";
+    const senderName = (ctx.from?.first_name || "Unknown").replace(/ /g, "");
 
-    if (!ctx.message || !ctx.message.message_id) {
-      return; // Exit early if there's no message or message ID
+    // Exit early if there's no message or message ID
+    if (!ctx.message || !messageId) {
+      return;
     }
 
-    const messageId = ctx.message.message_id;
-
-    // Using a type assertion for reply_to_message
     const repliedTo = (ctx.message as any)?.reply_to_message;
     const repliedToId = repliedTo?.message_id;
 
-    const messageData: MessageData = {
-      sender: senderName,
-      text: messageText,
-      id: messageId,
-      reply_to: repliedToId ? { id: repliedToId } : undefined,
-    };
+    const messageData = createMessageData(senderName, messageText, messageId, repliedToId);
 
     console.log(messageData);
 
     recentMessages[chatId] = [...(recentMessages[chatId] || []), messageData].slice(-MAX_CHAT_MESSAGES);
   });
+}
+
+function createMessageData(sender: string, text: string, id: number, reply_to_id?: number): MessageData {
+  return {
+    sender,
+    text,
+    id,
+    reply_to: reply_to_id ? { id: reply_to_id } : undefined,
+  };
 }
