@@ -8,7 +8,7 @@ export async function getSummaryForChat(chatId: number): Promise<string> {
   }
 
   const systemMessage =
-    "You're an assistant summarizing a chat group conversation. Carefully adapt to the language used in the conversation and maintain that same language in your summary. Summarize in 3 sentences or less, mentioning specifics without referencing message numbers. It's crucial to respond in the conversation's language.";
+    "You're an assistant summarizing a chat group conversation. Carefully adapt to the language used in the conversation and maintain that same language in your summary. Summarize in 3 sentences or less, mentioning specifics without referencing message numbers. It's crucial to respond in the conversation's language and to never mention message numbers.";
 
   const formattedMessages = recentMessagesForChat
     .map((message) => {
