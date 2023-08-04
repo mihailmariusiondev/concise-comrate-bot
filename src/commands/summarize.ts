@@ -26,7 +26,7 @@ export function summarizeCommand(bot: Telegraf) {
       return;
     }
 
-    const chatSummary = await getSummaryForChat(ctx, MAX_CHAT_MESSAGES);
+    const chatSummary = await getSummaryForChat(chatId);
     console.log(chatSummary);
     ctx.reply(chatSummary);
     lastCommandUsage[chatId] = currentTime;
