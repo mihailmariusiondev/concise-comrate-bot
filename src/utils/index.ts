@@ -1,4 +1,4 @@
-import { MAX_MESSAGE_LENGTH, openAiApi } from "../config";
+import { ERROR_SUMMARIZING, MAX_MESSAGE_LENGTH, openAiApi } from "../config";
 import { recentMessages } from "../state";
 
 export async function getSummaryForChat(chatId: number): Promise<string> {
@@ -50,9 +50,9 @@ export async function getSummaryForChat(chatId: number): Promise<string> {
       ],
     });
     const assistantMessage = response.data.choices?.[0]?.message?.content;
-    return assistantMessage || "Error retrieving summary.";
+    return assistantMessage || ERROR_SUMMARIZING;
   } catch (error) {
     console.error("Error getting summary from OpenAI:", error);
-    return "Error retrieving summary.";
+    return ERROR_SUMMARIZING;
   }
 }

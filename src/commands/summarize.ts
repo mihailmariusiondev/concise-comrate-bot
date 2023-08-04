@@ -27,7 +27,8 @@ export function summarizeCommand(bot: Telegraf) {
     }
 
     const chatSummary = await getSummaryForChat(chatId);
-    console.log(chatSummary);
+    console.log("Payload received from OpenAI:", chatSummary);
+
     ctx.reply(chatSummary);
     lastCommandUsage[chatId] = currentTime;
   });
