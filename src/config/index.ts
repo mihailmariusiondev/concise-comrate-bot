@@ -1,11 +1,11 @@
 import * as dotenv from "dotenv";
+import LanguageDetect from "languagedetect";
 import { Configuration, OpenAIApi } from "openai";
 
 dotenv.config();
 
 // Constants and environment variables
 export const MAX_CHAT_MESSAGES = 300;
-export const MAX_MESSAGE_LENGTH = 100;
 export const BOT_TOKEN = process.env.BOT_TOKEN;
 export const GPT_API_KEY = process.env.GPT_API_KEY;
 
@@ -30,3 +30,5 @@ export const configuration = new Configuration({
 });
 
 export const openAiApi = new OpenAIApi(configuration);
+
+export const languageDetector = new LanguageDetect();
