@@ -4,8 +4,8 @@
   "description": "El mejor bot de Telegram para resumir chats inútiles. Creador: @Arkantos2374 (telegram). Donaciones: paypal.me/mariusmihailion",
   "main": "index.ts",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon --watch \"src/**/*.ts\" --exec ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "dev": "nodemon --watch src/**/*.ts --exec ts-node src/index.ts",
     "build": "tsc"
   },
   "engines": {
