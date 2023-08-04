@@ -1,5 +1,6 @@
 export type MessageData = {
+  id: number;
   sender: string;
   text: string;
-  reply_to?: { sender: string };
+  reply_to?: { id: number };
 };

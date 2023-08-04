@@ -11,6 +11,7 @@ export function enableCommand(bot: Telegraf) {
         return;
       }
       botEnabledPerChat[chatId] = true;
+      console.log(BOT_ENABLED_MESSAGE);
       ctx.reply(BOT_ENABLED_MESSAGE);
     }
   });

@@ -10,17 +10,28 @@ export function textHandler(bot: Telegraf) {
       return;
     }
 
-    const senderName = ctx.from?.first_name || "Unknown";
     const messageText = (ctx.message as { text: string }).text;
-    const repliedToName = (ctx.message as any)?.reply_to_message?.from?.first_name;
+    const senderName = ctx.from?.first_name || "Unknown";
 
-    if (messageText) {
-      const messageData: MessageData = {
-        sender: senderName,
-        text: messageText,
-        reply_to: repliedToName ? { sender: repliedToName } : undefined,
-      };
-      recentMessages[chatId] = [...(recentMessages[chatId] || []), messageData].slice(-MAX_CHAT_MESSAGES);
+    if (!ctx.message || !ctx.message.message_id) {
+      return; // Exit early if there's no message or message ID
     }
+
+    const messageId = ctx.message.message_id;
+
+    // Using a type assertion for reply_to_message
+    const repliedTo = (ctx.message as any)?.reply_to_message;
+    const repliedToId = repliedTo?.message_id;
+
+    const messageData: MessageData = {
+      sender: senderName,
+      text: messageText,
+      id: messageId,
+      reply_to: repliedToId ? { id: repliedToId } : undefined,
+    };
+
+    console.log(messageData);
+
+    recentMessages[chatId] = [...(recentMessages[chatId] || []), messageData].slice(-MAX_CHAT_MESSAGES);
   });
 }

@@ -26,7 +26,9 @@ export function summarizeCommand(bot: Telegraf) {
       return;
     }
 
-    ctx.reply(await getSummaryForChat(ctx, MAX_CHAT_MESSAGES));
+    const chatSummary = await getSummaryForChat(ctx, MAX_CHAT_MESSAGES);
+    console.log(chatSummary);
+    ctx.reply(chatSummary);
     lastCommandUsage[chatId] = currentTime;
   });
 }

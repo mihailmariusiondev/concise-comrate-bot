@@ -29,6 +29,11 @@ export async function getSummaryForChat(ctx: Context, count: number): Promise<st
     content: messages.join("\\n"),
   };
 
+  console.log("Payload being sent to OpenAI:", {
+    model: "gpt-3.5-turbo-16k",
+    messages: [systemMessage, userMessage],
+  });
+
   try {
     const completion = await openAiApi.createChatCompletion({
       model: "gpt-3.5-turbo-16k",
