@@ -1,10 +1,10 @@
 import { Telegraf } from "telegraf";
-import { startCommand } from "./commands/start";
-import { enableCommand } from "./commands/enable";
+import { BOT_TOKEN } from "./config";
 import { disableCommand } from "./commands/disable";
+import { enableCommand } from "./commands/enable";
+import { startCommand } from "./commands/start";
 import { summarizeCommand } from "./commands/summarize";
 import { textHandler } from "./commands/text";
-import { BOT_TOKEN } from "./config";
 
 const bot = new Telegraf(BOT_TOKEN!);
 
