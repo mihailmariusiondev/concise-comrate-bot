@@ -10,11 +10,16 @@ export function textHandler(bot: Telegraf) {
       return;
     }
 
-    const messageText = (ctx.message as { text: string }).text;
     const senderName = ctx.from?.first_name || "Unknown";
+    const messageText = (ctx.message as { text: string }).text;
+    const repliedToName = (ctx.message as any)?.reply_to_message?.from?.first_name;
 
     if (messageText) {
-      const messageData: MessageData = { sender: senderName, text: messageText };
+      const messageData: MessageData = {
+        sender: senderName,
+        text: messageText,
+        reply_to: repliedToName ? { sender: repliedToName } : undefined,
+      };
       recentMessages[chatId] = [...(recentMessages[chatId] || []), messageData].slice(-MAX_CHAT_MESSAGES);
     }
   });
