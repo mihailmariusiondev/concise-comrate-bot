@@ -1,5 +1,5 @@
 import { Telegraf, Context } from "telegraf";
-import { BOT_NOT_ENABLED_REPLY, NOT_ENOUGH_MESSAGES_REPLY, COOLDOWN_MESSAGE, MAX_CHAT_MESSAGES } from "../config";
+import { BOT_NOT_ENABLED_REPLY, NOT_ENOUGH_MESSAGES_REPLY, COOLDOWN_MESSAGE } from "../config";
 import { botEnabledPerChat, recentMessages, lastCommandUsage, COMMAND_COOLDOWN } from "../state";
 import { getSummaryForChat } from "../utils";
 
