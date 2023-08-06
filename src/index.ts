@@ -1,43 +1,22 @@
 import { Context, Telegraf } from "telegraf";
 import { BOT_REPLY, COMMAND_COOLDOWN, COOLDOWN_MESSAGE, MAX_CHAT_MESSAGES, NOT_ENOUGH_MESSAGES_REPLY, START_MESSAGE, bot } from "./config";
 import { chatState } from "./state";
-import { checkBotEnabled, createMessageData, getBotStatusMessage, getSummaryForChat } from "./utils";
+import { checkBotStarted, createMessageData, getSummaryForChat } from "./utils";
 
 bot.start(async (ctx: Context) => {
   const chatId = ctx.chat?.id;
   if (!chatId) return;
 
-  const botStatusMessage = getBotStatusMessage(chatState[chatId]?.isBotEnabled ?? false);
+  // Set the isBotStarted property to true
+  chatState[chatId] = { ...(chatState[chatId] ?? {}), isBotStarted: true };
 
-  console.log(`${START_MESSAGE}. ${botStatusMessage}`);
-  ctx.reply(`${START_MESSAGE}. ${botStatusMessage}`, { parse_mode: "Markdown" });
-});
-
-bot.command("enable", async (ctx: Context) => {
-  const chatId = ctx.chat?.id;
-  if (!chatId) return;
-
-  chatState[chatId] = { ...(chatState[chatId] ?? {}), isBotEnabled: true };
-  const botStatusMessage = getBotStatusMessage(chatState[chatId].isBotEnabled);
-
-  console.log(botStatusMessage);
-  ctx.reply(botStatusMessage, { parse_mode: "Markdown" });
-});
-
-bot.command("disable", async (ctx: Context) => {
-  const chatId = ctx.chat?.id;
-  if (!chatId || !checkBotEnabled(chatId, ctx, BOT_REPLY.NO)) return;
-
-  chatState[chatId] = { ...(chatState[chatId] ?? {}), isBotEnabled: false };
-  const botStatusMessage = getBotStatusMessage(chatState[chatId].isBotEnabled);
-
-  console.log(botStatusMessage);
-  ctx.reply(botStatusMessage, { parse_mode: "Markdown" });
+  console.log(START_MESSAGE);
+  ctx.reply(START_MESSAGE, { parse_mode: "Markdown" });
 });
 
 bot.command("summarize", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
-  if (!chatId || !checkBotEnabled(chatId, ctx, BOT_REPLY.YES)) return;
+  if (!chatId || !checkBotStarted(chatId, ctx, BOT_REPLY.YES)) return;
 
   // Check if there are at least 5 messages to summarize
   const messageCount = chatState[chatId]?.recentMessages?.length || 0;
@@ -65,15 +44,7 @@ bot.command("summarize", async (ctx: Context) => {
 
 bot.on("text", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
-  if (!chatId || !checkBotEnabled(chatId, ctx, BOT_REPLY.YES)) return;
-
-  // Check if the bot is enabled before proceeding
-  if (!chatState[chatId]?.isBotEnabled) {
-    const botStatusMessage = getBotStatusMessage(false);
-    console.log(botStatusMessage);
-    ctx.reply(botStatusMessage);
-    return;
-  }
+  if (!chatId || !checkBotStarted(chatId, ctx, BOT_REPLY.NO)) return;
 
   const messageId = ctx.message?.message_id;
   const messageText = (ctx.message as { text: string }).text;

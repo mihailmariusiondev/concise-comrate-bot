@@ -8,5 +8,5 @@ export type MessageData = {
 export interface ChatState {
   recentMessages: MessageData[];
   lastCommandUsage: number;
-  isBotEnabled: boolean;
+  isBotStarted: boolean;
 }
