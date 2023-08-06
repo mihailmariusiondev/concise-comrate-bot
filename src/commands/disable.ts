@@ -3,7 +3,7 @@ import { BOT_ALREADY_DISABLED_MESSAGE, BOT_DISABLED_MESSAGE } from "../config";
 import { botEnabledPerChat } from "../state";
 
 export function disableCommand(bot: Telegraf) {
-  bot.command("disable", (ctx: Context) => {
+  bot.command("disable", async (ctx: Context) => {
     const chatId = ctx.chat?.id;
     if (chatId) {
       if (!botEnabledPerChat[chatId]) {

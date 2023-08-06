@@ -4,7 +4,7 @@ import { botEnabledPerChat, recentMessages } from "../state";
 import { MessageData } from "../types";
 
 export function textHandler(bot: Telegraf) {
-  bot.on("text", (ctx: Context) => {
+  bot.on("text", async (ctx: Context) => {
     const chatId = ctx.chat?.id;
     if (!chatId || !botEnabledPerChat[chatId]) {
       return;

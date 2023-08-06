@@ -3,7 +3,7 @@ import { BOT_ALREADY_ENABLED_MESSAGE, BOT_ENABLED_MESSAGE } from "../config";
 import { botEnabledPerChat } from "../state";
 
 export function enableCommand(bot: Telegraf) {
-  bot.command("enable", (ctx: Context) => {
+  bot.command("enable", async (ctx: Context) => {
     const chatId = ctx.chat?.id;
     if (chatId) {
       if (botEnabledPerChat[chatId]) {
