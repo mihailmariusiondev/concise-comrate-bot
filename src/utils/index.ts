@@ -1,5 +1,13 @@
 import { CreateChatCompletionRequest } from "openai";
-import { ERROR_SUMMARIZING, languageDetector, openAiApi } from "../config";
+import {
+  BOT_DISABLE_COMMAND,
+  BOT_ENABLE_COMMAND,
+  BOT_STATUS_DISABLED,
+  BOT_STATUS_ENABLED,
+  ERROR_SUMMARIZING,
+  languageDetector,
+  openAiApi,
+} from "../config";
 import { recentMessages } from "../state";
 
 export async function getSummaryForChat(chatId: number): Promise<string> {
@@ -57,4 +65,10 @@ export async function getSummaryForChat(chatId: number): Promise<string> {
 export function detectLanguage(text: string): string {
   const result = languageDetector.detect(text, 1);
   return result[0]?.[0] || "english";
+}
+
+export function getBotStatusMessage(isBotEnabled: boolean): string {
+  const status = isBotEnabled ? BOT_STATUS_ENABLED : BOT_STATUS_DISABLED;
+  const command = isBotEnabled ? BOT_DISABLE_COMMAND : BOT_ENABLE_COMMAND;
+  return `\n\nBot *${status}*, usa ${command} para ${isBotEnabled ? "desactivarlo" : "activarlo"}`;
 }

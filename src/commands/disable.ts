@@ -1,19 +1,16 @@
 import { Telegraf, Context } from "telegraf";
-import { BOT_ALREADY_DISABLED_MESSAGE, BOT_DISABLED_MESSAGE } from "../config";
 import { botEnabledPerChat } from "../state";
+import { getBotStatusMessage } from "../utils";
 
 export function disableCommand(bot: Telegraf) {
   bot.command("disable", async (ctx: Context) => {
     const chatId = ctx.chat?.id;
-    if (chatId) {
-      if (!botEnabledPerChat[chatId]) {
-        // ctx.reply(BOT_ALREADY_DISABLED_MESSAGE);
-        console.log(BOT_ALREADY_DISABLED_MESSAGE);
-        return;
-      }
-      botEnabledPerChat[chatId] = false;
-      console.log(BOT_DISABLED_MESSAGE);
-      // ctx.reply(BOT_DISABLED_MESSAGE);
-    }
+    if (!chatId) return;
+
+    botEnabledPerChat[chatId] = false;
+    const botStatus = getBotStatusMessage(botEnabledPerChat[chatId]);
+
+    console.log(botStatus);
+    ctx.reply(botStatus, { parse_mode: "Markdown" });
   });
 }
