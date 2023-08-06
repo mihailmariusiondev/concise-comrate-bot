@@ -1,7 +1,15 @@
 import { Context } from "telegraf";
-import { BOT_REPLY, COMMAND_COOLDOWN, COOLDOWN_MESSAGE, MAX_CHAT_MESSAGES, NOT_ENOUGH_MESSAGES_REPLY, START_MESSAGE, bot } from "./config";
+import {
+  BOT_REPLY,
+  COMMAND_COOLDOWN,
+  COOLDOWN_MESSAGE_REPLY,
+  MAX_CHAT_MESSAGES,
+  NOT_ENOUGH_MESSAGES_REPLY,
+  START_MESSAGE_REPLY,
+  bot,
+} from "./config";
 import { chatState } from "./state";
-import { checkBotStarted, createMessageData, getSummaryForChat } from "./utils";
+import { checkBotStarted, createMessageData, getSummaryForChat, handleError } from "./utils";
 
 bot.start(async (ctx: Context) => {
   const chatId = ctx.chat?.id;
@@ -10,8 +18,8 @@ bot.start(async (ctx: Context) => {
   // Set the isBotStarted property to true
   chatState[chatId] = { ...(chatState[chatId] ?? {}), isBotStarted: true };
 
-  console.log(START_MESSAGE);
-  ctx.reply(START_MESSAGE, { parse_mode: "Markdown" });
+  console.log(START_MESSAGE_REPLY);
+  ctx.reply(START_MESSAGE_REPLY, { parse_mode: "Markdown" }).catch((err) => handleError(ctx, err));
 });
 
 bot.command("summarize", async (ctx: Context) => {
@@ -22,7 +30,7 @@ bot.command("summarize", async (ctx: Context) => {
   const messageCount = chatState[chatId]?.recentMessages?.length || 0;
   if (messageCount < 5) {
     console.log(NOT_ENOUGH_MESSAGES_REPLY);
-    ctx.reply(NOT_ENOUGH_MESSAGES_REPLY);
+    ctx.reply(NOT_ENOUGH_MESSAGES_REPLY).catch((err) => handleError(ctx, err));
     return;
   }
 
@@ -30,14 +38,14 @@ bot.command("summarize", async (ctx: Context) => {
   const currentTime = Date.now();
 
   if (currentTime - lastUsed < COMMAND_COOLDOWN) {
-    console.log(COOLDOWN_MESSAGE);
-    ctx.reply(COOLDOWN_MESSAGE);
+    console.log(COOLDOWN_MESSAGE_REPLY);
+    ctx.reply(COOLDOWN_MESSAGE_REPLY).catch((err) => handleError(ctx, err));
     return;
   }
 
   const chatSummary = await getSummaryForChat(chatId);
   console.log({ chatSummary });
-  ctx.reply(chatSummary);
+  ctx.reply(chatSummary).catch((err) => handleError(ctx, err));
 
   chatState[chatId] = { ...(chatState[chatId] ?? {}), lastCommandUsage: currentTime };
 });

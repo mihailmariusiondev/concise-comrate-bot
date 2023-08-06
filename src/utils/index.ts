@@ -1,5 +1,5 @@
 import { CreateChatCompletionRequest } from "openai";
-import { ERROR_SUMMARIZING, BOT_REPLY, languageDetector, openAiApi, NOT_STARTED_MESSAGE } from "../config";
+import { ERROR_SUMMARIZING, BOT_REPLY, languageDetector, openAiApi, NOT_STARTED_MESSAGE_REPLY } from "../config";
 import { MessageData } from "../types";
 import { chatState } from "../state";
 import { Context } from "telegraf";
@@ -74,9 +74,25 @@ export function createMessageData(sender: string, text: string, id: number, repl
 export function checkBotStarted(chatId: number, ctx: Context, includeReply: BOT_REPLY = BOT_REPLY.NO): boolean {
   const isBotStarted = chatState[chatId]?.isBotStarted;
   if (!isBotStarted && includeReply === BOT_REPLY.YES) {
-    console.log(NOT_STARTED_MESSAGE);
-    ctx.reply(NOT_STARTED_MESSAGE, { parse_mode: "Markdown" });
+    console.log(NOT_STARTED_MESSAGE_REPLY);
+    ctx.reply(NOT_STARTED_MESSAGE_REPLY, { parse_mode: "Markdown" });
   }
 
   return isBotStarted;
+}
+
+export function handleError(ctx: Context, error: any) {
+  console.error("Error occurred:", error);
+
+  // Check error code and handle specific errors
+  if (error.code === 403) {
+    console.error("Bot was kicked from the group chat");
+    // Notify admin or take further action
+  } else if (error.code === 429) {
+    console.error("Too many requests, retry after:", error.parameters.retry_after);
+    // Implement retry logic
+  } else {
+    // For other errors, notify the user
+    ctx.reply("An error occurred, please try again later").catch(console.error);
+  }
 }
