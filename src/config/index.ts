@@ -5,16 +5,6 @@ import { Telegraf } from "telegraf";
 
 dotenv.config();
 
-// export enum BOT_COMMANDS {
-//   ENABLE = "/start",
-//   DISABLE = "/disable",
-// }
-
-// export enum BOT_STATUS {
-//   ENABLED = "activado",
-//   STARTED = "iniciado",
-// }
-
 export enum BOT_REPLY {
   YES,
   NO,

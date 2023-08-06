@@ -1,4 +1,4 @@
-import { Context, Telegraf } from "telegraf";
+import { Context } from "telegraf";
 import { BOT_REPLY, COMMAND_COOLDOWN, COOLDOWN_MESSAGE, MAX_CHAT_MESSAGES, NOT_ENOUGH_MESSAGES_REPLY, START_MESSAGE, bot } from "./config";
 import { chatState } from "./state";
 import { checkBotStarted, createMessageData, getSummaryForChat } from "./utils";
@@ -57,9 +57,7 @@ bot.on("text", async (ctx: Context) => {
 
   const repliedTo = (ctx.message as any)?.reply_to_message;
   const repliedToId = repliedTo?.message_id;
-
   const messageData = createMessageData(senderName, messageText, messageId, repliedToId);
-
   console.log(messageData);
 
   chatState[chatId] = {
