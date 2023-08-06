@@ -7,12 +7,13 @@ export function disableCommand(bot: Telegraf) {
     const chatId = ctx.chat?.id;
     if (chatId) {
       if (!botEnabledPerChat[chatId]) {
-        ctx.reply(BOT_ALREADY_DISABLED_MESSAGE);
+        // ctx.reply(BOT_ALREADY_DISABLED_MESSAGE);
+        console.log(BOT_ALREADY_DISABLED_MESSAGE);
         return;
       }
       botEnabledPerChat[chatId] = false;
       console.log(BOT_DISABLED_MESSAGE);
-      ctx.reply(BOT_DISABLED_MESSAGE);
+      // ctx.reply(BOT_DISABLED_MESSAGE);
     }
   });
 }
