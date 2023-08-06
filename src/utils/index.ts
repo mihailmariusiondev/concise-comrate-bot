@@ -1,17 +1,11 @@
 import { CreateChatCompletionRequest } from "openai";
-import {
-  BOT_DISABLE_COMMAND,
-  BOT_ENABLE_COMMAND,
-  BOT_STATUS_DISABLED,
-  BOT_STATUS_ENABLED,
-  ERROR_SUMMARIZING,
-  languageDetector,
-  openAiApi,
-} from "../config";
-import { recentMessages } from "../state";
+import { BOT_COMMANDS, BOT_STATUS, ERROR_SUMMARIZING, BOT_REPLY, languageDetector, openAiApi } from "../config";
+import { MessageData } from "../types";
+import { chatState } from "../state";
+import { Context } from "telegraf";
 
 export async function getSummaryForChat(chatId: number): Promise<string> {
-  const recentMessagesForChat = recentMessages[chatId];
+  const recentMessagesForChat = chatState[chatId]?.recentMessages;
   if (!recentMessagesForChat || recentMessagesForChat.length === 0) {
     return "No recent messages to summarize.";
   }
@@ -68,7 +62,29 @@ export function detectLanguage(text: string): string {
 }
 
 export function getBotStatusMessage(isBotEnabled: boolean): string {
-  const status = isBotEnabled ? BOT_STATUS_ENABLED : BOT_STATUS_DISABLED;
-  const command = isBotEnabled ? BOT_DISABLE_COMMAND : BOT_ENABLE_COMMAND;
+  const status = isBotEnabled ? BOT_STATUS.ENABLED : BOT_STATUS.DISABLED;
+  const command = isBotEnabled ? BOT_COMMANDS.DISABLE : BOT_COMMANDS.ENABLE;
   return `\n\nBot *${status}*, usa ${command} para ${isBotEnabled ? "desactivarlo" : "activarlo"}`;
+}
+
+export function createMessageData(sender: string, text: string, id: number, reply_to_id?: number): MessageData {
+  return {
+    sender,
+    text,
+    id,
+    reply_to: reply_to_id ? { id: reply_to_id } : undefined,
+  };
+}
+
+// This function checks if the bot is enabled for the specific chatId
+export function checkBotEnabled(chatId: number, ctx: Context, includeReply: BOT_REPLY = BOT_REPLY.NO): boolean {
+  if (!chatState[chatId]?.isBotEnabled) {
+    if (includeReply == BOT_REPLY.YES) {
+      const botStatusMessage = getBotStatusMessage(false);
+      console.log(botStatusMessage);
+      ctx.reply(botStatusMessage, { parse_mode: "Markdown" });
+    }
+    return false;
+  }
+  return true;
 }

@@ -1,31 +1,38 @@
 import * as dotenv from "dotenv";
 import LanguageDetect from "languagedetect";
 import { Configuration, OpenAIApi } from "openai";
+import { Telegraf } from "telegraf";
 
 dotenv.config();
+
+export enum BOT_COMMANDS {
+  ENABLE = "/enable",
+  DISABLE = "/disable",
+}
+
+export enum BOT_STATUS {
+  ENABLED = "activado",
+  DISABLED = "desactivado",
+}
+
+export enum BOT_REPLY {
+  YES,
+  NO,
+}
 
 // Constants and environment variables
 export const BOT_TOKEN = process.env.BOT_TOKEN;
 export const GPT_API_KEY = process.env.GPT_API_KEY;
 
-// Bot commands
-export const BOT_ENABLE_COMMAND = "/enable";
-export const BOT_DISABLE_COMMAND = "/disable";
-
 // Bot messages
 export const START_MESSAGE = "¡Paisha crack! Vamos a resumir tus chats de mierda";
-export const BOT_ENABLED_MESSAGE = "Bot activado";
-export const BOT_DISABLED_MESSAGE = "Bot desactivado";
 export const NOT_ENOUGH_MESSAGES_REPLY = "No hay suficientes mensajes para resumir. Necesito al menos 5 mensajes";
 export const COOLDOWN_MESSAGE = "Machooo, espérate un poco antes de volver a usar el comando";
 export const ERROR_SUMMARIZING = "Ya la hemos liao... Error al resumir los mensajes";
 
 // Bot settings
 export const MAX_CHAT_MESSAGES = 300;
-
-// Bot status messages
-export const BOT_STATUS_ENABLED = "activado";
-export const BOT_STATUS_DISABLED = "desactivado";
+export const COMMAND_COOLDOWN = 60 * 1000;
 
 if (!BOT_TOKEN || !GPT_API_KEY) {
   console.error("Environment variables BOT_TOKEN or GPT_API_KEY are not set.");
@@ -39,3 +46,5 @@ export const configuration = new Configuration({
 export const openAiApi = new OpenAIApi(configuration);
 
 export const languageDetector = new LanguageDetect();
+
+export const bot = new Telegraf(BOT_TOKEN!);
