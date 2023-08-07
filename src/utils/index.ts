@@ -1,47 +1,98 @@
-import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from "openai";
+import { CreateChatCompletionRequest } from "openai";
+import { ERROR_SUMMARIZING, BOT_REPLY, languageDetector, openAiApi, NOT_STARTED_MESSAGE_REPLY } from "../config";
+import { MessageData } from "../types";
+import { chatState } from "../state";
 import { Context } from "telegraf";
-import { openAiApi, ERROR_SUMMARIZING } from "../config";
-import { recentMessages } from "../state";
 
-export async function getSummaryForChat(ctx: Context, count: number): Promise<string> {
-  {
-    let messages: string[] = [];
-    if (ctx.chat && typeof ctx.chat.id === "number") {
-      const messageDataList = recentMessages[ctx.chat.id]?.slice(-count) || [];
-      messages = messageDataList.map((data: { sender: any; text: any }) => `${data.sender}: ${data.text}`);
-    }
+export async function getSummaryForChat(chatId: number): Promise<string> {
+  const recentMessagesForChat = chatState[chatId]?.recentMessages;
+  if (!recentMessagesForChat || recentMessagesForChat.length === 0) {
+    return "No recent messages to summarize.";
+  }
 
-    const systemMessage: ChatCompletionRequestMessage = {
-      role: "system" as ChatCompletionRequestMessageRoleEnum,
-      content: `
-      You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages. The conversation provided to you is in a specific language, and you should adapt to it, ensuring your summary is in the same language.
-      Respond with a short and concise summary of the conversation while following these guidelines:
-      - Adapt to and match the tone of the conversation, acting like you are part of the group.
-      - Use 3 sentences or less for your summary.
-      - Be specific: mention who said what without being too general.
-      `,
-    };
+  const formattedMessages = recentMessagesForChat
+    .map((message) => {
+      if (message.reply_to && message.reply_to.id) {
+        return `#${message.id} ${message.sender} (replying #${message.reply_to.id})`;
+      }
+      return `#${message.id} ${message.sender}: ${message.text}`;
+    })
+    .join(" | ");
 
-    const userMessage: ChatCompletionRequestMessage = {
-      role: "user" as ChatCompletionRequestMessageRoleEnum,
-      content: messages.join("\n"),
-    };
+  const language = detectLanguage(formattedMessages);
 
-    console.log("Payload being sent to OpenAI:", {
-      model: "gpt-3.5-turbo-16k",
-      messages: [systemMessage, userMessage],
-    });
+  const systemMessage = `You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages.
+    You will receive a recent conversation that happened in the group. Respond immediately with a short and concise summary of the conversation, capturing key details and significant events.
+    The summary should have the following characteristics:
+    - NEVER reference message IDs (e.g., #360).
+    - Should be in ${language} language
+    - Should have a tone that is similar to the conversation, act like you are part of the group
+    - Use 3 sentences or less
+    - Don't be too general, mention who said what`;
 
-    try {
-      const completion = await openAiApi.createChatCompletion({
-        model: "gpt-3.5-turbo-16k",
-        messages: [systemMessage, userMessage],
-      });
+  const payload: CreateChatCompletionRequest = {
+    model: "gpt-3.5-turbo-16k",
+    messages: [
+      {
+        role: "system",
+        content: systemMessage,
+      },
+      {
+        role: "user",
+        content: formattedMessages,
+      },
+    ],
+  };
 
-      return completion.data?.choices[0]?.message?.content?.trim() || ERROR_SUMMARIZING;
-    } catch (error) {
-      console.error(ERROR_SUMMARIZING, error);
-      return ERROR_SUMMARIZING;
-    }
+  console.log("Payload being sent to OpenAI:", JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await openAiApi.createChatCompletion(payload);
+    const assistantMessage = response.data.choices?.[0]?.message?.content;
+    return assistantMessage || ERROR_SUMMARIZING;
+  } catch (error) {
+    console.error("Error getting summary from OpenAI:", error);
+    return ERROR_SUMMARIZING;
+  }
+}
+
+export function detectLanguage(text: string): string {
+  const result = languageDetector.detect(text, 1);
+  return result[0]?.[0] || "english";
+}
+
+export function createMessageData(sender: string, text: string, id: number, reply_to_id?: number): MessageData {
+  return {
+    sender,
+    text,
+    id,
+    reply_to: reply_to_id ? { id: reply_to_id } : undefined,
+  };
+}
+
+// This function checks if the bot is started for the specific chatId
+export function checkBotStarted(chatId: number, ctx: Context, includeReply: BOT_REPLY = BOT_REPLY.NO): boolean {
+  const isBotStarted = chatState[chatId]?.isBotStarted;
+  if (!isBotStarted && includeReply === BOT_REPLY.YES) {
+    console.log(NOT_STARTED_MESSAGE_REPLY);
+    ctx.reply(NOT_STARTED_MESSAGE_REPLY, { parse_mode: "Markdown" });
+  }
+
+  return isBotStarted;
+}
+
+export function handleError(ctx: Context, error: any) {
+  console.error("Error occurred:", error);
+
+  // Check error code and handle specific errors
+  if (error.code === 403) {
+    console.error("Bot was kicked from the group chat");
+    // Notify admin or take further action
+  } else if (error.code === 429) {
+    console.error("Too many requests, retry after:", error.parameters.retry_after);
+    // Implement retry logic
+  } else {
+    // For other errors, notify the user
+    ctx.reply("An error occurred, please try again later").catch(console.error);
   }
 }
