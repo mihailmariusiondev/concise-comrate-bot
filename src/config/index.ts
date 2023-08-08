@@ -1,5 +1,4 @@
 import * as dotenv from "dotenv";
-import LanguageDetect from "languagedetect";
 import { Configuration, OpenAIApi } from "openai";
 import { Telegraf } from "telegraf";
 
@@ -30,12 +29,10 @@ if (!BOT_TOKEN || !GPT_API_KEY) {
   process.exit(1);
 }
 
-export const configuration = new Configuration({
+export const openAiConfiguration = new Configuration({
   apiKey: GPT_API_KEY,
 });
 
-export const openAiApi = new OpenAIApi(configuration);
-
-export const languageDetector = new LanguageDetect();
+export const openAiApi = new OpenAIApi(openAiConfiguration);
 
 export const bot = new Telegraf(BOT_TOKEN!);

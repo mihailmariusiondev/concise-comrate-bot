@@ -1,8 +1,7 @@
 import { CreateChatCompletionRequest } from "openai";
-import { ERROR_SUMMARIZING, BOT_REPLY, languageDetector, openAiApi, NOT_STARTED_MESSAGE_REPLY } from "../config";
-import { MessageData } from "../types";
+import { openAiApi, ERROR_SUMMARIZING } from "../config";
 import { chatState } from "../state";
-import { Context } from "telegraf";
+import { detectLanguage } from "./detectLanguage";
 
 export async function getSummaryForChat(chatId: number): Promise<string> {
   const recentMessagesForChat = chatState[chatId]?.recentMessages;
@@ -53,46 +52,5 @@ export async function getSummaryForChat(chatId: number): Promise<string> {
   } catch (error) {
     console.error("Error getting summary from OpenAI:", error);
     return ERROR_SUMMARIZING;
-  }
-}
-
-export function detectLanguage(text: string): string {
-  const result = languageDetector.detect(text, 1);
-  return result[0]?.[0] || "english";
-}
-
-export function createMessageData(sender: string, text: string, id: number, reply_to_id?: number): MessageData {
-  return {
-    sender,
-    text,
-    id,
-    reply_to: reply_to_id ? { id: reply_to_id } : undefined,
-  };
-}
-
-// This function checks if the bot is started for the specific chatId
-export function checkBotStarted(chatId: number, ctx: Context, includeReply: BOT_REPLY = BOT_REPLY.NO): boolean {
-  const isBotStarted = chatState[chatId]?.isBotStarted;
-  if (!isBotStarted && includeReply === BOT_REPLY.YES) {
-    console.log(NOT_STARTED_MESSAGE_REPLY);
-    ctx.reply(NOT_STARTED_MESSAGE_REPLY, { parse_mode: "Markdown" });
-  }
-
-  return isBotStarted;
-}
-
-export function handleError(ctx: Context, error: any) {
-  console.error("Error occurred:", error);
-
-  // Check error code and handle specific errors
-  if (error.code === 403) {
-    console.error("Bot was kicked from the group chat");
-    // Notify admin or take further action
-  } else if (error.code === 429) {
-    console.error("Too many requests, retry after:", error.parameters.retry_after);
-    // Implement retry logic
-  } else {
-    // For other errors, notify the user
-    ctx.reply("An error occurred, please try again later").catch(console.error);
   }
 }

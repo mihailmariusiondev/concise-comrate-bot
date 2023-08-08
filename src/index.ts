@@ -9,7 +9,10 @@ import {
   bot,
 } from "./config";
 import { chatState } from "./state";
-import { checkBotStarted, createMessageData, getSummaryForChat, handleError } from "./utils";
+import { handleError } from "./utils/handleError";
+import { getSummaryForChat } from "./utils/getSummaryForChat";
+import { checkBotStarted } from "./utils/checkBotStarted";
+import { createMessageData } from "./utils/createMessageData";
 
 bot.start(async (ctx: Context) => {
   const chatId = ctx.chat?.id;
@@ -58,14 +61,15 @@ bot.on("text", async (ctx: Context) => {
   const messageText = (ctx.message as { text: string }).text;
   const senderName = (ctx.from?.first_name || "Unknown").replace(/ /g, "");
 
-  // Exit early if there's no message or message ID
-  if (!ctx.message || !messageId) {
+  // Exit early if there's no messageText or messageId
+  if (!messageText || !messageId) {
     return;
   }
 
   const repliedTo = (ctx.message as any)?.reply_to_message;
   const repliedToId = repliedTo?.message_id;
-  const messageData = createMessageData(senderName, messageText, messageId, repliedToId);
+  const repliedToText = repliedTo?.text;
+  const messageData = createMessageData(senderName, messageText, messageId, repliedToId, repliedToText); // Include the text of the replied-to message
   console.log(messageData);
 
   chatState[chatId] = {
