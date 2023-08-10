@@ -65,6 +65,10 @@ bot.command("summarize", async (ctx: Context) => {
     })
     .join(" | ");
 
+  // Detect the language based on recent messages
+  const detectedLanguage = detectLanguage(formattedMessages);
+  console.log({ detectedLanguage });
+
   // Check if the replied-to message contains a YouTube link and handle video summarization
   if (repliedToText) {
     const youtubeMatch = YOUTUBE_URL_REGEX.exec(repliedToText);
@@ -75,22 +79,23 @@ bot.command("summarize", async (ctx: Context) => {
       // Handle case where no captions are available
       if (captions.length === 0) {
         const originalNoCaptionsMessage = "Sorry, there are no captions available for this video. I can't summarize it.";
-        const languageCode = detectLanguage(formattedMessages); // Detecting language from formatted messages
-        const translatedNoCaptionsMessage = await translateMessage(originalNoCaptionsMessage, languageCode);
+
+        // Translate the no captions message
+        const translatedNoCaptionsMessage = await translateMessage(originalNoCaptionsMessage, detectedLanguage);
         ctx.reply(translatedNoCaptionsMessage).catch((err) => handleError(ctx, err));
         return;
       }
 
-      const videoSummary = await getSummary(captions, ContentType.VIDEO);
+      // Video summarization
+      const videoSummary = await getSummary(captions, ContentType.VIDEO, detectedLanguage);
       ctx.reply(videoSummary).catch((err) => handleError(ctx, err));
       return;
     }
   }
 
-  // Otherwise, summarize chat conversations
-  const chatSummary = await getSummary(formattedMessages, ContentType.CHAT); // Use ContentType.CHAT
+  // Summarize chat conversations, passing the detected language
+  const chatSummary = await getSummary(formattedMessages, ContentType.CHAT, detectedLanguage);
   ctx.reply(chatSummary).catch((err) => handleError(ctx, err));
-
   chatState[chatId] = { ...(chatState[chatId] ?? {}), lastCommandUsage: currentTime };
 });
 

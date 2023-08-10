@@ -2,9 +2,11 @@ import { CreateChatCompletionRequest } from "openai";
 import { openAiApi, ERROR_SUMMARIZING, ContentType } from "../config";
 import { detectLanguage } from "./detectLanguage";
 
-export async function getSummary(contentToSummarize: string, contentType: ContentType = ContentType.GENERAL): Promise<string> {
-  const language = detectLanguage(contentToSummarize);
-
+export async function getSummary(
+  contentToSummarize: string,
+  contentType: ContentType = ContentType.GENERAL,
+  language: string
+): Promise<string> {
   let systemMessage = "";
   if (contentType === ContentType.CHAT) {
     systemMessage = `You are an assistant helping friends catch up in a busy chat group. Your goal is to help friends in this group stay up to date without having to read all the messages.
@@ -20,9 +22,7 @@ export async function getSummary(contentToSummarize: string, contentType: Conten
   // Adding common characteristics for all content types
   systemMessage += `
     The summary should have the following characteristics:
-    - (PRIORITY) Should be in ${language} language
-    - Should have a tone that is similar to the conversation, act like you are part of the group
-    - Use 3 sentences or less`;
+    - (PRIORITY) Should be in ${language} language`;
 
   const payload: CreateChatCompletionRequest = {
     model: "gpt-3.5-turbo-16k",
@@ -43,6 +43,8 @@ export async function getSummary(contentToSummarize: string, contentType: Conten
   try {
     const response = await openAiApi.createChatCompletion(payload);
     const assistantMessage = response.data.choices?.[0]?.message?.content;
+
+    console.log("Payload received from OpenAI:", JSON.stringify(payload, null, 2));
     return assistantMessage || ERROR_SUMMARIZING;
   } catch (error) {
     console.error("Error getting summary from OpenAI:", error);
