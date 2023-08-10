@@ -9,6 +9,12 @@ export enum BOT_REPLY {
   NO,
 }
 
+export enum ContentType {
+  CHAT = "chat",
+  VIDEO = "video",
+  GENERAL = "general",
+}
+
 // Constants and environment variables
 export const BOT_TOKEN = process.env.BOT_TOKEN;
 export const GPT_API_KEY = process.env.GPT_API_KEY;
@@ -23,6 +29,9 @@ export const ERROR_SUMMARIZING = "Ya la hemos liao... Error al resumir los mensa
 // Bot settings
 export const MAX_CHAT_MESSAGES = 300;
 export const COMMAND_COOLDOWN = 60 * 1000;
+
+// Regex
+export const YOUTUBE_URL_REGEX = /(?:\/|%3D|v=|vi=)([0-9A-z-_]{11})(?:[%#?&]|$)/;
 
 if (!BOT_TOKEN || !GPT_API_KEY) {
   console.error("Environment variables BOT_TOKEN or GPT_API_KEY are not set.");

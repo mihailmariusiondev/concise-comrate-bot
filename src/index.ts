@@ -3,16 +3,21 @@ import {
   BOT_REPLY,
   COMMAND_COOLDOWN,
   COOLDOWN_MESSAGE_REPLY,
+  ContentType,
   MAX_CHAT_MESSAGES,
   NOT_ENOUGH_MESSAGES_REPLY,
   START_MESSAGE_REPLY,
+  YOUTUBE_URL_REGEX,
   bot,
 } from "./config";
 import { chatState } from "./state";
 import { handleError } from "./utils/handleError";
-import { getSummaryForChat } from "./utils/getSummaryForChat";
 import { checkBotStarted } from "./utils/checkBotStarted";
 import { createMessageData } from "./utils/createMessageData";
+import { getVideoCaptions } from "./utils/getVideoCaptions";
+import { getSummary } from "./utils/getSummary";
+import { detectLanguage } from "./utils/detectLanguage";
+import { translateMessage } from "./utils/translateMessage";
 
 bot.start(async (ctx: Context) => {
   const chatId = ctx.chat?.id;
@@ -27,9 +32,10 @@ bot.start(async (ctx: Context) => {
 
 bot.command("summarize", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
+  // Check if the bot is started for the given chat
   if (!chatId || !checkBotStarted(chatId, ctx, BOT_REPLY.YES)) return;
 
-  // Check if there are at least 5 messages to summarize
+  // Check if there are enough messages to summarize
   const messageCount = chatState[chatId]?.recentMessages?.length || 0;
   if (messageCount < 5) {
     console.log(NOT_ENOUGH_MESSAGES_REPLY);
@@ -37,17 +43,52 @@ bot.command("summarize", async (ctx: Context) => {
     return;
   }
 
+  // Check if the command is in cooldown
   const lastUsed = chatState[chatId]?.lastCommandUsage || 0;
   const currentTime = Date.now();
-
   if (currentTime - lastUsed < COMMAND_COOLDOWN) {
     console.log(COOLDOWN_MESSAGE_REPLY);
     ctx.reply(COOLDOWN_MESSAGE_REPLY).catch((err) => handleError(ctx, err));
     return;
   }
 
-  const chatSummary = await getSummaryForChat(chatId);
-  console.log({ chatSummary });
+  const repliedToText = (ctx.message as any)?.reply_to_message?.text;
+
+  // Format the recent messages for summarization and language detection
+  const recentMessagesForChat = chatState[chatId]?.recentMessages || [];
+  const formattedMessages = recentMessagesForChat
+    .map((message) => {
+      if (message.reply_to && message.reply_to.id) {
+        return `#${message.id} ${message.sender} (replying #${message.reply_to.id})`;
+      }
+      return `#${message.id} ${message.sender}: ${message.text}`;
+    })
+    .join(" | ");
+
+  // Check if the replied-to message contains a YouTube link and handle video summarization
+  if (repliedToText) {
+    const youtubeMatch = YOUTUBE_URL_REGEX.exec(repliedToText);
+    if (youtubeMatch) {
+      const videoId = youtubeMatch[1];
+      const captions = await getVideoCaptions(videoId);
+
+      // Handle case where no captions are available
+      if (captions.length === 0) {
+        const originalNoCaptionsMessage = "Sorry, there are no captions available for this video. I can't summarize it.";
+        const languageCode = detectLanguage(formattedMessages); // Detecting language from formatted messages
+        const translatedNoCaptionsMessage = await translateMessage(originalNoCaptionsMessage, languageCode);
+        ctx.reply(translatedNoCaptionsMessage).catch((err) => handleError(ctx, err));
+        return;
+      }
+
+      const videoSummary = await getSummary(captions, ContentType.VIDEO);
+      ctx.reply(videoSummary).catch((err) => handleError(ctx, err));
+      return;
+    }
+  }
+
+  // Otherwise, summarize chat conversations
+  const chatSummary = await getSummary(formattedMessages, ContentType.CHAT); // Use ContentType.CHAT
   ctx.reply(chatSummary).catch((err) => handleError(ctx, err));
 
   chatState[chatId] = { ...(chatState[chatId] ?? {}), lastCommandUsage: currentTime };
@@ -66,9 +107,9 @@ bot.on("text", async (ctx: Context) => {
     return;
   }
 
-  const repliedTo = (ctx.message as any)?.reply_to_message;
-  const repliedToId = repliedTo?.message_id;
-  const repliedToText = repliedTo?.text;
+  const repliedToId = (ctx.message as any)?.reply_to_message?.message_id;
+  const repliedToText = (ctx.message as any)?.reply_to_message?.text;
+
   const messageData = createMessageData(senderName, messageText, messageId, repliedToId, repliedToText); // Include the text of the replied-to message
   console.log(messageData);
 
