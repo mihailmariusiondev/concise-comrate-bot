@@ -64,6 +64,7 @@ The bot is actively being developed, with plans to support additional types of c
 - Add better error handling
 - Don't use memory for state management, I need persistent storage solution
 - Improve folder structure, not sure if this is the best solution
+- Add logging (winston looks cool)
 
 ## Contributing
 
