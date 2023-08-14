@@ -4,7 +4,7 @@ import { Telegraf } from "telegraf";
 
 dotenv.config();
 
-export enum BOT_REPLY {
+export enum IncludeBotReply {
   YES,
   NO,
 }

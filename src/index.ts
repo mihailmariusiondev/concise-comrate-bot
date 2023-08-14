@@ -1,6 +1,6 @@
 import { Context } from "telegraf";
 import {
-  BOT_REPLY,
+  IncludeBotReply,
   COMMAND_COOLDOWN,
   COOLDOWN_MESSAGE_REPLY,
   ContentType,
@@ -33,7 +33,7 @@ bot.start(async (ctx: Context) => {
 bot.command("summarize", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
   // Check if the bot is started for the given chat
-  if (!chatId || !checkBotStarted(chatId, ctx, BOT_REPLY.YES)) return;
+  if (!chatId || !checkBotStarted(chatId, ctx, IncludeBotReply.YES)) return;
 
   // Check if there are enough messages to summarize
   const messageCount = chatState[chatId]?.recentMessages?.length || 0;
@@ -101,7 +101,7 @@ bot.command("summarize", async (ctx: Context) => {
 
 bot.on("text", async (ctx: Context) => {
   const chatId = ctx.chat?.id;
-  if (!chatId || !checkBotStarted(chatId, ctx, BOT_REPLY.NO)) return;
+  if (!chatId || !checkBotStarted(chatId, ctx, IncludeBotReply.NO)) return;
 
   const messageId = ctx.message?.message_id;
   const messageText = (ctx.message as { text: string }).text;

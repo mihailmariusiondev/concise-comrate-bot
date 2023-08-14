@@ -1,6 +1,5 @@
 import { CreateChatCompletionRequest } from "openai";
 import { openAiApi, ERROR_SUMMARIZING, ContentType } from "../config";
-import { detectLanguage } from "./detectLanguage";
 
 export async function getSummary(
   contentToSummarize: string,
