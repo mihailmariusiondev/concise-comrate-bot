@@ -54,9 +54,16 @@ concise-comrade-bot is designed to provide concise and accurate summaries for va
 - Receive a summarized version highlighting key details.
 - Translate the summary into different languages (if supported).
 
-## Future Development
+## Roadmap
 
-The bot is actively being developed, with plans to support additional types of content summarization. Stay tuned for updates and new features!
+The bot is actively being developed, with plans to support additional types of content summarization. Stay tuned for updates and new features! For now, this is the official TODO list:
+
+- Add a `/config` command
+  - Configure initial language for the whole session
+- Add inline summarization capabilities (example: /summarize youtube-link OR /summarize your-text)
+- Add better error handling
+- Don't use memory for state management, I need persistent storage solution
+- Improve folder structure, not sure if this is the best solution
 
 ## Contributing
 
