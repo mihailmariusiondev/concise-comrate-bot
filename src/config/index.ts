@@ -1,13 +1,18 @@
 import * as dotenv from "dotenv";
-import LanguageDetect from "languagedetect";
 import { Configuration, OpenAIApi } from "openai";
 import { Telegraf } from "telegraf";
 
 dotenv.config();
 
-export enum BOT_REPLY {
+export enum IncludeBotReply {
   YES,
   NO,
+}
+
+export enum ContentType {
+  CHAT = "chat",
+  VIDEO = "video",
+  GENERAL = "general",
 }
 
 // Constants and environment variables
@@ -25,17 +30,18 @@ export const ERROR_SUMMARIZING = "Ya la hemos liao... Error al resumir los mensa
 export const MAX_CHAT_MESSAGES = 300;
 export const COMMAND_COOLDOWN = 60 * 1000;
 
+// Regex
+export const YOUTUBE_URL_REGEX = /(?:\/|%3D|v=|vi=)([0-9A-z-_]{11})(?:[%#?&]|$)/;
+
 if (!BOT_TOKEN || !GPT_API_KEY) {
   console.error("Environment variables BOT_TOKEN or GPT_API_KEY are not set.");
   process.exit(1);
 }
 
-export const configuration = new Configuration({
+export const openAiConfiguration = new Configuration({
   apiKey: GPT_API_KEY,
 });
 
-export const openAiApi = new OpenAIApi(configuration);
-
-export const languageDetector = new LanguageDetect();
+export const openAiApi = new OpenAIApi(openAiConfiguration);
 
 export const bot = new Telegraf(BOT_TOKEN!);
