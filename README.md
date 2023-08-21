@@ -61,10 +61,12 @@ The bot is actively being developed, with plans to support additional types of c
 - Add a `/config` command
   - Configure initial language for the whole session
 - Add inline summarization capabilities (example: /summarize youtube-link OR /summarize your-text)
+- When using `/summarize` on a video, reply the summary to the user that has used the command
 - Add better error handling
 - Don't use memory for state management, I need persistent storage solution
 - Improve folder structure, not sure if this is the best solution
 - Add logging (winston looks cool)
+  - Add timestamps when logging happens
 
 ## Contributing
 
