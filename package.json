@@ -28,6 +28,7 @@
     "youtube-transcript": "^1.0.6"
   },
   "devDependencies": {
+    "@types/node-fetch": "^2.6.4",
     "nodemon": "^3.0.1"
   }
 }
