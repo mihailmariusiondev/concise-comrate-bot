@@ -66,7 +66,8 @@ bot.command("summarize", async (ctx: Context) => {
     .join(" | ");
 
   // Detect the language based on recent messages
-  const detectedLanguage = detectLanguage(formattedMessages);
+  // const detectedLanguage = detectLanguage(formattedMessages); // TODO this isn't working as intended for now, fix later
+  const detectedLanguage = "spanish";
   console.log({ detectedLanguage });
 
   // Check if the replied-to message contains a YouTube link and handle video summarization
@@ -116,7 +117,7 @@ bot.on("text", async (ctx: Context) => {
   const repliedToText = (ctx.message as any)?.reply_to_message?.text;
 
   const messageData = createMessageData(senderName, messageText, messageId, repliedToId, repliedToText); // Include the text of the replied-to message
-  console.log(messageData);
+  // console.log(messageData);
 
   chatState[chatId] = {
     ...(chatState[chatId] ?? {}),
