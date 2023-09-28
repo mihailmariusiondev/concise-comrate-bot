@@ -12,7 +12,11 @@ export async function getSummary(
       Respond immediately with a short and concise summary, capturing key details and significant events.
       - (IMPORTANT) NEVER reference message IDs (e.g., #360).
       - The summary should look like bullet points
-      - Mention who said what about which topic`;
+      - Mention who said what about which topic
+      Example:
+      - Alice mentioned her new job at XYZ Corp.
+      - Bob shared a link to a YouTube video about cooking.
+      - Carol expressed concerns about climate change.`;
   } else if (contentType === ContentType.VIDEO) {
     systemMessage = `You are an assistant summarizing video content. Your goal is to provide a concise summary of the video.`;
   } else if (contentType === ContentType.GENERAL) {
